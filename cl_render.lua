@@ -15,6 +15,7 @@ local AddTextComponentSubstringPlayerName = AddTextComponentSubstringPlayerName
 -- end optimizations
 
 local nearestPostalText = ""
+local isShowingPostal = false
 
 -- recalculate current postal
 Citizen.CreateThread(function()
@@ -64,21 +65,39 @@ Citizen.CreateThread(function()
 end)
 
 -- text display thread
-Citizen.CreateThread(function()
-    local posX = config.text.posX
-    local posY = config.text.posY
-    local _string = "STRING"
-    local _scale = 0.42
-    local _font = 4
-    while true do
-        if nearest and not IsHudHidden() then
-            SetTextScale(_scale, _scale)
-            SetTextFont(_font)
-            SetTextOutline()
-            BeginTextCommandDisplayText(_string)
-            AddTextComponentSubstringPlayerName(nearestPostalText)
-            EndTextCommandDisplayText(posX, posY)
+function ShowPostal()
+    Citizen.CreateThread(function()
+        local posX = config.text.posX
+        local posY = config.text.posY
+        local _string = "STRING"
+        local _scale = 0.42
+        local _font = 4
+        while true do
+            if nearest and not IsHudHidden() then
+                SetTextScale(_scale, _scale)
+                SetTextFont(_font)
+                SetTextOutline()
+                BeginTextCommandDisplayText(_string)
+                AddTextComponentSubstringPlayerName(nearestPostalText)
+                EndTextCommandDisplayText(posX, posY)
+            end
+            if not isShowingPostal then
+                break
+            end
+            Wait(1)
         end
-        Wait(0)
+    end)
+end
+
+RegisterKeyMapping('togglepostal', 'Toggle show postalcode', 'keyboard', 'F10')
+
+RegisterCommand('togglepostal', function(_)
+    Wait(50)
+    if isShowingPostal then
+        isShowingPostal = false
+    else
+        isShowingPostal = true
+        ShowPostal()
     end
 end)
+ShowPostal()
